@@ -17,22 +17,16 @@ try:
         filewrite.write(data)
         filewrite.close()
 
-        print("Listing all iptables looking for a match... if there is a massive amount of blocked IP's this could take a few minutes..")
-        proc = subprocess.Popen("iptables -L ARTILLERY -n -v --line-numbers | grep %s" % (
-            ipaddress), stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
-
-        for line in proc.stdout.readlines():
-            line = str(line)
-            match = re.search(ipaddress, line)
-            if match:
-                # this is the rule number
-                line = line.split(" ")
-                line = line[0]
-                print(line)
-                # delete it
-                subprocess.Popen("iptables -D ARTILLERY %s" % (line),
-                                 stderr=subprocess.PIPE, stdout=subprocess.PIPE, shell=True)
-
+        print("Removing ip from ipset alias set...")
+        
+        try:
+            proc = subprocess.check_call("ipset del artillery-bans %s" % (ipaddress) , shell=True)
+        except subprocess.CalledProcessError as er:
+            print("[!] Could not remove the IP Address, is it valid?")
+            sys.exit()
+        
+        print("The ip was successfully removed from the bans list.")
+        
     # if not valid then flag
     else:
         print("[!] Not a valid IP Address. Exiting.")

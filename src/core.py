@@ -88,14 +88,14 @@ def ban(ip):
         if not ip.startswith("0."):
             if is_valid_ipv4(ip.strip()):
                 # if we are running nix variant then trigger ban through
-                # iptables
+                # ipset and firewalld
                 if is_posix():
                     if not is_already_banned(ip):
                         ban_check = read_config("HONEYPOT_BAN").lower()
                         # if we are actually banning IP addresses
                         if ban_check == "on":
                             subprocess.Popen(
-                                "iptables -I ARTILLERY 1 -s %s -j DROP" % ip, shell=True).wait()
+                                "ipset add artillery-bans %s -exist" % ip, shell=True).wait()
                     # After the server is banned, add it to the banlist if it's
                     # not already in there
                     fileopen = open("/var/artillery/banlist.txt", "r")
@@ -120,10 +120,10 @@ def update():
             try:
                 shutil.rmtree("/var/artillery")
                 subprocess.Popen(
-                    "git clone https://github.com/binarydefense/artillery", shell=True).wait()
+                    "git clone https://github.com/ninmore/artillery", shell=True).wait()
             except:
                 print(
-                    "[!] Something failed. Please type 'git clone https://github.com/binarydefense/artillery /var/artillery' to fix!")
+                    "[!] Something failed. Please type 'git clone https://github.com/ninmore/artillery /var/artillery' to fix!")
 
         subprocess.Popen("cd /var/artillery;git pull",
                          stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
@@ -244,17 +244,14 @@ def is_windows():
     return os.name == "nt"
 
 
-def create_iptables_subset():
+def create_ipset_subset():
     if is_posix():
         ban_check = read_config("HONEYPOT_BAN").lower()
         if ban_check == "on":
-            subprocess.Popen("iptables -N ARTILLERY",
+            subprocess.Popen("ipset create artillery-bans hash:ip",
                              stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
-            subprocess.Popen("iptables -F ARTILLERY",
+            subprocess.Popen("firewall-cmd --direct --add-rule ipv4 filter INPUT_direct 0 -p ALL -m set --match-set artillery-bans src -j DROP",
                              stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
-            subprocess.Popen("iptables -I INPUT -j ARTILLERY",
-                             stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
-
     if os.path.isfile(check_banlist_path()):
         banfile = open(check_banlist_path(), "r")
     else:
@@ -278,7 +275,7 @@ def is_already_banned(ip):
     ban_check = read_config("HONEYPOT_BAN").lower()
     if ban_check == "on":
 
-        proc = subprocess.Popen("iptables -L ARTILLERY -n --line-numbers",
+        proc = subprocess.Popen("ipsset list artillery-bans",
                                 stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
         iptablesbanlist = proc.stdout.readlines()
         if ip in iptablesbanlist:
@@ -552,9 +549,11 @@ def cleanup_artillery():
     ban_check = read_config("HONEYPOT_BAN").lower()
     if ban_check == "on":
 
-        subprocess.Popen("iptables -D INPUT -j ARTILLERY",
+        subprocess.Popen("firewall-cmd --direct --remove-rule ipv4 filter INPUT_direct 0 -p ALL -m set --match-set artillery-bans src -j DROP",
                          stdout=subprocess.PIP, stderr=subprocess.PIPE, shell=True)
-        subprocess.Popen("iptables -X ARTILLERY",
+        subprocess.Popen("ipset flush artillery-bans",
+                         stdout=subprocess.PIP, stderr=subprocess.PIPE, shell=True)
+        subprocess.Popen("ipset destroy artillery-bans",
                          stdout=subprocess.PIP, stderr=subprocess.PIPE, shell=True)
 
 # overwrite artillery banlist after certain time interval

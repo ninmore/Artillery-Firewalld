@@ -6,6 +6,8 @@
 import subprocess
 from src.core import *
 
+##Todo maybe an ipset/firewall-cmd anti flood later.
+
 anti_dos_ports = read_config("ANTI_DOS_PORTS")
 anti_dos_throttle = read_config("ANTI_DOS_THROTTLE_CONNECTIONS")
 anti_dos_burst = read_config("ANTI_DOS_LIMIT_BURST")

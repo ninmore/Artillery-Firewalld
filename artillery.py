@@ -53,10 +53,10 @@ try:
     # port ranges to spawn
     port = read_config("PORTS")
 
-    # if we are running posix then lets create a new iptables chain
+    # if we are running posix then lets create a new ipset alias
     if is_posix():
         time.sleep(2)
-        create_iptables_subset()
+        create_ipset_subset()
         # start anti_dos
         import src.anti_dos
 
