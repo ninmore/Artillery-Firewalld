@@ -1,3 +1,6 @@
+### Important!
+This version of Artillery is using Firewalld and Ipset so please make sure that you install them otherwise it will not work. This is also going to be custom version that will be sligtly modified in different ways for my liking.
+
 Artillery is a combination of a honeypot, monitoring tool, and alerting system. Eventually this will evolve into a hardening monitoring platform as well to detect insecure configurations from nix systems. It's relatively simple, run ```./setup.py``` and hit yes, this will install Artillery in ```/var/artillery``` and edit your ```/etc/init.d/rc.local``` to start artillery on boot up.
 
 ### Features
