@@ -98,6 +98,7 @@ try:
             time.sleep(100000)
         except KeyboardInterrupt:
             print("\n[!] Exiting Artillery... hack the gibson.\n")
+            write_log("[!] %s: Artillery has been stopped." % (grab_time()))
             sys.exit()
 
 #except sys.excepthook as e:

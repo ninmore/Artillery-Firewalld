@@ -16,6 +16,7 @@ except ImportError: import socketserver as SocketServer
 import os
 import random
 import datetime
+import GeoIP
 from src.core import *
 
 # port ranges to spawn pulled from config
@@ -24,6 +25,9 @@ ports = read_config("PORTS")
 bind_interface = read_config("BIND_INTERFACE")
 honeypot_ban = is_config_enabled("HONEYPOT_BAN")
 honeypot_autoaccept = is_config_enabled("HONEYPOT_AUTOACCEPT")
+
+# GeoIP
+gi = GeoIP.new(GeoIP.GEOIP_MEMORY_CACHE)
 
 # main socket server listener for responses
 
@@ -55,12 +59,12 @@ class SocketListener((SocketServer.BaseRequestHandler)):
                         now, ip)
                     alert = ""
                     if honeypot_ban:
-                        alert = "%s [!] Artillery has blocked (and blacklisted) the IP Address: %s for connecting to a honeypot restricted port: %s" % (
-                            now, ip, port)
+                        alert = "%s [!] Artillery has blocked (and blacklisted) the IP Address: %s for connecting to a honeypot restricted port: %s  Location: %s" % (
+                        now, ip, port, gi.country_name_by_addr(ip))
                     else:
-                        alert = "%s [!] Artillery has detected an attack from IP address: %s for a connection on a honeypot port: %s" % (
-                            now, ip, port)
-                    warn_the_good_guys(subject, alert)
+                        alert = "%s [!] Artillery has detected an attack from IP address: %s for a connection on a honeypot port: %s  Location: %s" % (
+                        now, ip, port, gi.country_name_by_addr(ip))
+                    warn_the_good_guys(subject, alert, 0)
 
                     # close the socket
                     self.request.close()

@@ -459,17 +459,37 @@ def write_log(alert):
         filewrite.write(alert + "\n")
         filewrite.close()
 
-
-def warn_the_good_guys(subject, alert):
+# type = connect = 0, monitor = 1, harden = 2, ssh = 3
+def warn_the_good_guys(subject, alert, type):
     email_alerts = is_config_enabled("EMAIL_ALERTS")
     email_frequency = is_config_enabled("EMAIL_FREQUENCY")
+    email_connect_mute = is_config_enabled("MUTE_EMAIL_ALERTS_PORT")
+    email_monitor_mute = is_config_enabled("MUTE_EMAIL_ALERTS_MONITOR")
+    email_harden_mute = is_config_enabled("MUTE_EMAIL_ALERTS_HARDEN")
+    email_ssh_mute = is_config_enabled("MUTE_EMAIL_ALERTS_SSH")
 
     if email_alerts and not email_frequency:
-        send_mail(subject, alert)
+        
+        if type == 0 and not email_connect_mute:
+            send_mail(subject, alert)
+        elif type == 1 and not email_monitor_mute:
+            send_mail(subject, alert)
+        elif type == 2 and not email_harden_mute:
+            send_mail(subject, alert)
+        elif type == 3 and not email_ssh_mute:
+            send_mail(subject, alert)
 
     if email_alerts and email_frequency:
-        prep_email(alert + "\n")
-
+        
+        if type == 0 and not email_connect_mute:
+            prep_email(alert + "\n")
+        elif type == 1 and not email_monitor_mute:
+            prep_email(alert + "\n")
+        elif type == 2 and not email_harden_mute:
+            prep_email(alert + "\n")
+        elif type == 3 and not email_ssh_mute:
+            prep_email(alert + "\n")
+        
     if is_config_enabled("CONSOLE_LOGGING"):
         print("{}".format(alert))
 

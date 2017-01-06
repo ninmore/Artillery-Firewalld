@@ -4,6 +4,7 @@
 #
 import time
 import re
+import GeoIP
 # needed for backwards compatibility of python2 vs 3 - need to convert to threading eventually
 try: import thread
 except ImportError: import _thread as thread
@@ -12,6 +13,12 @@ from src.core import *
 monitor_frequency = int(read_config("MONITOR_FREQUENCY"))
 ssh_attempts = read_config("SSH_BRUTE_ATTEMPTS")
 
+# Warning Message
+subject = "[!] Artillery has banned an SSH brute force. [!]"
+msg = "Artillery has blocked (blacklisted) the following IP for SSH brute forcing violations: "
+
+# GeoIP
+gi = GeoIP.new(GeoIP.GEOIP_MEMORY_CACHE)
 
 def ssh_monitor(monitor_frequency):
     counter = 0
@@ -76,9 +83,8 @@ def ssh_monitor(monitor_frequency):
                             if counter == 0:
                                 whitelist_match = is_whitelisted_ip(ipaddress)
                                 if whitelist_match == 0:
-                                    subject = "[!] Artillery has banned an SSH brute force. [!]"
-                                    alert = "Artillery has blocked (blacklisted) the following IP for SSH brute forcing violations: " + ipaddress
-                                    warn_the_good_guys(subject, alert)
+                                    alert = msg + ipaddress + " Location: " + gi.country_name_by_addr(ipaddress)
+                                    warn_the_good_guys(subject, alert, 3)
 
                                     # do the actual ban, this is pulled from
                                     # src.core
