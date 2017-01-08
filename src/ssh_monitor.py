@@ -84,6 +84,7 @@ def ssh_monitor(monitor_frequency):
                                 whitelist_match = is_whitelisted_ip(ipaddress)
                                 if whitelist_match == 0:
                                     alert = msg + ipaddress + " Location: " + gi.country_name_by_addr(ipaddress)
+                                    alert += " [%s,%s,%s]" % (ip, port, gi.country_name_by_addr(ip))
                                     warn_the_good_guys(subject, alert, 3)
 
                                     # do the actual ban, this is pulled from

@@ -61,9 +61,11 @@ class SocketListener((SocketServer.BaseRequestHandler)):
                     if honeypot_ban:
                         alert = "%s [!] Artillery has blocked (and blacklisted) the IP Address: %s for connecting to a honeypot restricted port: %s  Location: %s" % (
                         now, ip, port, gi.country_name_by_addr(ip))
+                        alert += " [%s,%s,%s]" % (ip, port, gi.country_name_by_addr(ip))
                     else:
                         alert = "%s [!] Artillery has detected an attack from IP address: %s for a connection on a honeypot port: %s  Location: %s" % (
                         now, ip, port, gi.country_name_by_addr(ip))
+                        alert += " [%s,%s,%s]" % (ip, port, gi.country_name_by_addr(ip))
                     warn_the_good_guys(subject, alert, 0)
 
                     # close the socket
