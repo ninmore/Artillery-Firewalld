@@ -14,6 +14,8 @@ import datetime
 import shutil
 from src.core import *
 
+exclude_check = []
+
 
 def monitor_system(time_wait):
     # total_compare is a tally of all sha512 hashes
@@ -32,7 +34,6 @@ def monitor_system(time_wait):
         # know
         if os.path.isdir(directory):
             # check to see if theres an include
-            exclude_check = read_config("EXCLUDE")
             match = re.search(exclude_check, directory)
             # if we hit a match then we need to exclude
             if not directory in exclude_check:
@@ -123,7 +124,9 @@ def start_monitor():
     if is_config_enabled("MONITOR"):
         # start the monitoring
         time_wait = read_config("MONITOR_FREQUENCY")
-
+        # check excluded dirs
+        global exclude_check
+        exclude_check = read_config("EXCLUDE")
         # loop forever
         while 1:
             thread.start_new_thread(monitor_system, (time_wait,))

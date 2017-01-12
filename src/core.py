@@ -37,9 +37,9 @@ from string import *
 # from string import split, join
 import socket
 
+last_message = ""
+
 # grab the current time
-
-
 def grab_time():
     ts = time.time()
     return datetime.datetime.fromtimestamp(ts).strftime('%Y-%m-%d %H:%M:%S')
@@ -387,6 +387,12 @@ def threat_server():
 
 def syslog(message):
     type = read_config("SYSLOG_TYPE").lower()
+    
+    global last_message
+    
+    if last_message == message:
+        print "Surpessed Duplicate!"
+        return
 
     # if we are sending remote syslog
     if type == "remote":
@@ -441,8 +447,11 @@ def syslog(message):
         filewrite = open("/var/artillery/logs/alerts.log", "a")
         filewrite.write(message + "\n")
         filewrite.close()
+    
+    last_message = message
 
 def write_log(alert):
+    
     if is_posix():
         syslog(alert)
 
