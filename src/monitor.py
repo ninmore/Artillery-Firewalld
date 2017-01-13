@@ -86,6 +86,8 @@ def monitor_system(time_wait):
                 "/var/artillery/database/temp.database", "r")
             try: temp_hash = temp_database_file.read().encode('utf-8')
             except: temp_hash = temp_database_file.read()
+            
+            temp_database_file.close()
 
             # hash the databases then compare
             database_hash = hashlib.sha512()
