@@ -78,9 +78,8 @@ def is_config_enabled(param):
         return config in ("on", "yes")
 
     except AttributeError:
-        return "off"
-
-
+        return "off"     
+        
 def ban(ip):
     # ip check routine to see if its a valid IP address
     ip = ip.rstrip()
@@ -91,9 +90,9 @@ def ban(ip):
                 # ipset and firewalld
                 if is_posix():
                     if not is_already_banned(ip):
-                        ban_check = read_config("HONEYPOT_BAN").lower()
+                        ban_check = is_config_enabled("HONEYPOT_BAN")
                         # if we are actually banning IP addresses
-                        if ban_check == "on":
+                        if ban_check:
                             subprocess.Popen(
                                 "ipset add artillery-bans %s -exist" % ip, shell=True).wait()
                     # After the server is banned, add it to the banlist if it's
@@ -105,6 +104,12 @@ def ban(ip):
                         filewrite.write(ip + "\n")
                         filewrite.close()
                         sort_banlist()
+                        threatServerEnabled = is_config_enabled("THREAT_SERVER") 
+                        # Check if we need to copy to the threat server also
+                        if threatServerEnabled:
+                            # Read once vars
+                            threatDir = read_config("THREAT_LOCATION")
+                            shutil.copy2("/var/artillery/banlist.txt", threatDir)
 
                 # if running windows then route attacker to some bs address
                 if is_windows():

@@ -11,6 +11,8 @@ You will also need to have GeoIP installed please make sure to install it otherw
 
 3. GeoIP is used so when you are alerted in the email it will also give the location, just a nice little feature.
 
+4. ThreatServer banlist.txt updates dynamically.
+
 More planned in the future.
 
 ### Introduction to Artillery
