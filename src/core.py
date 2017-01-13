@@ -83,7 +83,7 @@ def is_config_enabled(param):
 def ban(ip):
     # ip check routine to see if its a valid IP address
     ip = ip.rstrip()
-    if not ip.startswith("#"):
+    if not ip.startswith(";"):
         if not ip.startswith("0."):
             if is_valid_ipv4(ip.strip()):
                 # if we are running nix variant then trigger ban through
@@ -154,7 +154,7 @@ def is_whitelisted_ip(ip):
 
 
 def is_valid_ipv4(ip):
-    if not ip.startswith("#"):
+    if not ip.startswith(";"):
         pattern = re.compile(r"""
     ^
     (?:
@@ -206,7 +206,7 @@ def check_banlist_path():
             if os.path.isdir("/var/artillery"):
                 filewrite = open("/var/artillery/banlist.txt", "w")
                 filewrite.write(
-                    "#\n#\n#\n# Binary Defense Systems Artillery Threat Intelligence Feed and Banlist Feed\n# https://www.binarydefense.com\n#\n# Note that this is for public use only.\n# The ATIF feed may not be used for commercial resale or in products that are charging fees for such services.\n# Use of these feeds for commerical (having others pay for a service) use is strictly prohibited.\n#\n#\n#\n")
+                    ";\n;\n;\n; Binary Defense Systems Artillery Threat Intelligence Feed and Banlist Feed\n; https://www.binarydefense.com\n;\n; Note that this is for public use only.\n; The ATIF feed may not be used for commercial resale or in products that are charging fees for such services.\n; Use of these feeds for commerical (having others pay for a service) use is strictly prohibited.\n;\n;\n;\n")
                 filewrite.close()
                 path = "/var/artillery/banlist.txt"
 
@@ -221,7 +221,7 @@ def check_banlist_path():
                 filewrite = open(
                     program_files + "\\Artillery\\banlist.txt", "w")
                 filewrite.write(
-                    "#\n#\n#\n# Binary Defense Systems Artillery Threat Intelligence Feed and Banlist Feed\n# https://www.binarydefense.com\n#\n# Note that this is for public use only.\n# The ATIF feed may not be used for commercial resale or in products that are charging fees for such services.\n# Use of these feeds for commerical (having others pay for a service) use is strictly prohibited.\n#\n#\n#\n")
+                    ";\n;\n;\n; Binary Defense Systems Artillery Threat Intelligence Feed and Banlist Feed\n; https://www.binarydefense.com\n;\n; Note that this is for public use only.\n; The ATIF feed may not be used for commercial resale or in products that are charging fees for such services.\n; Use of these feeds for commerical (having others pay for a service) use is strictly prohibited.\n;\n;\n;\n")
                 filewrite.close()
     return path
 
@@ -270,7 +270,7 @@ def create_ipset_subset():
             # iterate through lines in ban file and ban them if not already
             # banned
         for ip in banfile:
-            if not ip.startswith("#"):
+            if not ip.startswith(";"):
                 if not is_already_banned(ip):
                     ip = ip.strip()
                     ban(ip)
@@ -649,7 +649,7 @@ def format_ips(url):
                     line = line.split(" ")[1]
                 except:
                     pass
-            if not "#" in line:
+            if not ";" in line:
                 if not "//" in line:
                     # if we don't have the IP yet
                     if not line in fileopen:
@@ -699,18 +699,18 @@ def pull_source_feeds():
 
 def sort_banlist():
     ips = open("/var/artillery/banlist.txt", "r").readlines()
-    banner = """#
-#
-#
-# Binary Defense Systems Artillery Threat Intelligence Feed and Banlist Feed
-# https://www.binarydefense.com
-#
-# Note that this is for public use only.
-# The ATIF feed may not be used for commercial resale or in products that are charging fees for such services.
-# Use of these feeds for commerical (having others pay for a service) use is strictly prohibited.
-#
-#
-#
+    banner = """;
+;
+;
+; Binary Defense Systems Artillery Threat Intelligence Feed and Banlist Feed
+; https://www.binarydefense.com
+;
+; Note that this is for public use only.
+; The ATIF feed may not be used for commercial resale or in products that are charging fees for such services.
+; Use of these feeds for commerical (having others pay for a service) use is strictly prohibited.
+;
+;
+;
 """
     ip_filter = ""
     for ip in ips:
