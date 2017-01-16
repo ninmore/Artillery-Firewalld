@@ -41,7 +41,8 @@ if is_posix():
             # triggered
             warning = warning + \
                 "[!] Issue identified: SSH Protocol 1 enabled which is potentially vulnerable to MiTM attacks. https://www.kb.cert.org/vuls/id/684820\n\r\n\r"
-
+                
+        fileopen.close()
     #
     # check ftp config
     #
@@ -53,7 +54,8 @@ if is_posix():
             # trigger warning if match
             warning = warning + \
                 "[!] Issue identified: /etc/vsftpd.conf allows Anonymous login. An attacker can gain a foothold to the system with absolutel zero effort. Recommendation: Change anonymous_enable yes to anonymous_enable no\n\r\n\r"
-
+        
+        fileopen.close()
     #
     # check /var/www permissions
     #

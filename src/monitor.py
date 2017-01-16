@@ -49,7 +49,7 @@ def monitor_system(time_wait):
                                 try:
                                     fileopen = open(filename, "rb")
                                     data = fileopen.read()
-
+                                    fileopen.close()
                                 except:
                                     pass
                                 hash = hashlib.sha512()
@@ -81,6 +81,7 @@ def monitor_system(time_wait):
         database_file = open("/var/artillery/database/integrity.database", "r")
         try: database_content = database_file.read().encode('utf-8')
         except: database_content = database_file.read()
+        database_file.close()
         if os.path.isfile("/var/artillery/database/temp.database"):
             temp_database_file = open(
                 "/var/artillery/database/temp.database", "r")

@@ -95,6 +95,7 @@ def ssh_monitor(monitor_frequency):
                                     # wait one to make sure everything is
                                     # caught up
                                     time.sleep(1)
+            fileopen1.close()
             # sleep for defined time
             time.sleep(monitor_frequency)
 

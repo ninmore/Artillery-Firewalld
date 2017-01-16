@@ -37,8 +37,6 @@ from string import *
 # from string import split, join
 import socket
 
-last_message = ""
-
 # grab the current time
 def grab_time():
     ts = time.time()
@@ -69,8 +67,9 @@ def read_config(param):
                 line = line.rstrip()
                 line = line.replace('"', "")
                 line = line.split("=")
+                fileopen.close()
                 return line[1]
-
+    fileopen.close()
 
 def is_config_enabled(param):
     try:
@@ -78,7 +77,16 @@ def is_config_enabled(param):
         return config in ("on", "yes")
 
     except AttributeError:
-        return "off"     
+        return "off"  
+
+def get_Logger():
+    my_logger = logging.getLogger('Artillery')
+    if not getattr(my_logger, 'handler_set', None):
+        my_logger.setLevel(logging.DEBUG)
+        handler = logging.handlers.SysLogHandler(address='/dev/log')
+        my_logger.addHandler(handler)
+        my_logger.handler_set = True
+    return my_logger
         
 def ban(ip):
     # ip check routine to see if its a valid IP address
@@ -392,12 +400,6 @@ def threat_server():
 
 def syslog(message):
     type = read_config("SYSLOG_TYPE").lower()
-    
-    global last_message
-    
-    if last_message == message:
-        print "Surpessed Duplicate!"
-        return
 
     # if we are sending remote syslog
     if type == "remote":
@@ -433,12 +435,8 @@ def syslog(message):
 
     # if we are sending local syslog messages
     if type == "local":
-        my_logger = logging.getLogger('Artillery')
-        my_logger.setLevel(logging.DEBUG)
-        handler = logging.handlers.SysLogHandler(address='/dev/log')
-        my_logger.addHandler(handler)
         for line in message.splitlines():
-            my_logger.critical(line + "\n")
+            get_Logger().critical(line + "\n")
 
     # if we don't want to use local syslog and just write to file in
     # logs/alerts.log
@@ -452,8 +450,6 @@ def syslog(message):
         filewrite = open("/var/artillery/logs/alerts.log", "a")
         filewrite.write(message + "\n")
         filewrite.close()
-    
-    last_message = message
 
 def write_log(alert):
     

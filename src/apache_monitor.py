@@ -13,6 +13,8 @@ def tail(some_file):
         if line:
             yield line
         yield None
+        
+    this_file.close()
 
 # grab the access logs and tail them
 access = "/var/log/apache2/access.log"

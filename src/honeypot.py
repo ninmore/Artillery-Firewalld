@@ -123,6 +123,9 @@ def main(ports, bind_interface):
                 if not match:
                         # ban the ipaddress
                     ban(line)
+        
+        fileopen.close()
+        
     # split into tuple
     ports = ports.split(",")
     for port in ports:

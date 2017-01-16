@@ -56,6 +56,7 @@ def read_config_ini(path, param):
                 line = line.replace('"', "")
                 line = line.split("=")
                 return line[1]
+    fileopen.close()
 
 
 def read_config_yaml(path, param):
