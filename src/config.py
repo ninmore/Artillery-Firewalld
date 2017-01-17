@@ -58,7 +58,6 @@ def read_config_ini(path, param):
                 return line[1]
     fileopen.close()
 
-
 def read_config_yaml(path, param):
     fileopen = open(path, "r")
     configTree = yaml.safe_load(fileopen)

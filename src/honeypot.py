@@ -17,6 +17,7 @@ import os
 import random
 import datetime
 import GeoIP
+import traceback
 from src.core import *
 
 # port ranges to spawn pulled from config
@@ -76,7 +77,8 @@ class SocketListener((SocketServer.BaseRequestHandler)):
                     ban(ip)
 
         except Exception as e:
-            print("[!] Error detected. Printing: " + str(e))
+            print("[!] Error detected. Printing: " + traceback.format_exc())
+            e = sys.exc_info()[0]
             pass
 
 # here we define a basic server

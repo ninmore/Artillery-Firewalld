@@ -13,7 +13,6 @@ try:
 except ImportError:
     from email import *
 
-import os
 import re
 import subprocess
 import urllib
@@ -111,14 +110,14 @@ def ban(ip):
                         filewrite = open("/var/artillery/banlist.txt", "a")
                         filewrite.write(ip + "\n")
                         filewrite.close()
-                        sort_banlist()
                         threatServerEnabled = is_config_enabled("THREAT_SERVER") 
                         # Check if we need to copy to the threat server also
                         if threatServerEnabled:
                             # Read once vars
                             threatDir = read_config("THREAT_LOCATION")
                             shutil.copy2("/var/artillery/banlist.txt", threatDir)
-
+                        #Save a backup of the current ban list for faster importing
+                        subprocess.Popen("ipset save artillery-bans > artillery-bans.backup", shell=True).wait()
                 # if running windows then route attacker to some bs address
                 if is_windows():
                     subprocess.Popen("route ADD %s MASK 255.255.255.255 10.255.255.255" % (
@@ -258,13 +257,6 @@ def is_windows():
 
 
 def create_ipset_subset():
-    if is_posix():
-        ban_check = read_config("HONEYPOT_BAN").lower()
-        if ban_check == "on":
-            subprocess.Popen("ipset create artillery-bans hash:ip",
-                             stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
-            subprocess.Popen("firewall-cmd --direct --add-rule ipv4 filter INPUT_direct 0 -p ALL -m set --match-set artillery-bans src -j DROP",
-                             stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
     if os.path.isfile(check_banlist_path()):
         banfile = open(check_banlist_path(), "r")
     else:
@@ -274,21 +266,43 @@ def create_ipset_subset():
         banfile = open("banlist.txt", "r")
 
     # if we are banning
-    if read_config("HONEYPOT_BAN").lower() == "on":
+    if is_config_enabled("HONEYPOT_BAN"):
+        if is_posix():
+            ##Check to restore from a backup
+            if os.path.isfile("artillery-bans.backup") is True:
+                subprocess.Popen("ipset restore < artillery-bans.backup", shell=True).wait()
+                subprocess.Popen("firewall-cmd --direct --add-rule ipv4 filter INPUT_direct 0 -p ALL -m set --match-set artillery-bans src -j DROP",
+                             stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
+                return
             # iterate through lines in ban file and ban them if not already
             # banned
-        for ip in banfile:
-            if not ip.startswith(";"):
-                if not is_already_banned(ip):
-                    ip = ip.strip()
-                    ban(ip)
-
-
+            subprocess.Popen("ipset create artillery-bans hash:ip",
+                             stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
+            subprocess.Popen("firewall-cmd --direct --add-rule ipv4 filter INPUT_direct 0 -p ALL -m set --match-set artillery-bans src -j DROP",
+                             stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
+            for ip in banfile:
+                if not ip.startswith(";"):
+                    if not is_already_banned(ip):
+                        print("Banning " + str(ip))
+                        ip = ip.strip()
+                        subprocess.Popen("ipset add artillery-bans %s -exist" % ip, shell=True).wait()
+            ##Once done make a backup to save time on startup            
+            subprocess.Popen("ipset save artillery-bans > artillery-bans.backup" % ip, shell=True).wait()
+        else:
+            for ip in banfile:
+                if not ip.startswith(";"):
+                    if not is_already_banned(ip):
+                        ip = ip.strip()
+                        ban(ip)
+    
+                             
+    print("[*] Ban ipset created and firewall rule!")
+            
 def is_already_banned(ip):
     ban_check = read_config("HONEYPOT_BAN").lower()
     if ban_check == "on":
 
-        proc = subprocess.Popen("ipsset list artillery-bans",
+        proc = subprocess.Popen("ipset list artillery-bans",
                                 stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
         iptablesbanlist = proc.stdout.readlines()
         if ip in iptablesbanlist:
@@ -578,13 +592,13 @@ def kill_artillery():
 def cleanup_artillery():
     ban_check = read_config("HONEYPOT_BAN").lower()
     if ban_check == "on":
+    
+        sort_banlist()
 
-        subprocess.Popen("firewall-cmd --direct --remove-rule ipv4 filter INPUT_direct 0 -p ALL -m set --match-set artillery-bans src -j DROP",
-                         stdout=subprocess.PIP, stderr=subprocess.PIPE, shell=True)
-        subprocess.Popen("ipset flush artillery-bans",
-                         stdout=subprocess.PIP, stderr=subprocess.PIPE, shell=True)
-        subprocess.Popen("ipset destroy artillery-bans",
-                         stdout=subprocess.PIP, stderr=subprocess.PIPE, shell=True)
+        subprocess.Popen("firewall-cmd --direct --remove-rule ipv4 filter INPUT_direct 0 -p ALL -m set --match-set artillery-bans src -j DROP", shell=True).wait()
+        subprocess.Popen("ipset save artillery-bans > artillery-bans.backup", shell=True).wait()
+        subprocess.Popen("ipset flush artillery-bans", shell=True).wait()
+        subprocess.Popen("ipset destroy artillery-bans", shell=True).wait()
 
 # overwrite artillery banlist after certain time interval
 
